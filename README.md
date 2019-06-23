@@ -11,7 +11,7 @@ SW:
 2) FFMPEG<br>
 
 # Commands
-execute the webserver in background to provide the webpage on the browser<br
+execute the webserver in background to provide the webpage on the browser<br>
 pi@MazeRunner:~ $ node 2019-06-15-test-serial/demo.js &<br>
 execute the transcoder to stream the video<br>
 pi@MazeRunner:~ $ ffmpeg -f v4l2 -framerate 20 -video_size 640x480 -i /dev/video0 -f mpegts -codec:v mpeg1video -s 640x480 -b:v 600k -bf 0 http://localhost:8080/mystream<br>
