@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<meta charset="utf-8"/>
+<html>
+	<head>
+		<title>Maze Runner</title>
+		<link rel="stylesheet" href="style.css">
+		<script type="text/javascript" src="/socket.io/socket.io.js"></script>
+		<script type="text/javascript">
+			var host_ip = document.location.hostname;
+			console.log("connecting to host: ", host_ip);
+
+			//Connect to the server via websocket
+			var mysocket = io("http://" +host_ip +":8080");
+			//Long lived frame object
+			var last_frame;
+
+			//-----------------------------------------
+			//	CONNESSION ACKNOWLEDGE
+			//-----------------------------------------
+			//	Link is initiated by the client
+			//	Server sends a welcome message when link is estabilished
+			//	Server could send an auth token to keep track of individual clients and login data
+
+			mysocket.on
+			(
+				"welcome",
+				(message) =>
+				{
+					console.log("Server websocket connession acknoweldged... " +message.payload);
+				}
+			)
+
+			//-----------------------------------------
+			//	SERVER->CLIENT CONTROLS
+			//-----------------------------------------
+			//	Server can send an async message to dinamically update the page without reloading
+			//	This is an example message with the server local date and time in string form
+
+			mysocket.on
+			(
+				"server_time",
+				(message) =>
+				{
+					fill_label( message.server_time );
+					console.log("Server sent his local time... " +message.server_time);
+				}
+			)
+
+			function fill_label( payload )
+			{
+				window.document.getElementById("my_text_box").value=payload;
+			}
+
+			//-----------------------------------------
+			//	CLIENT->SERVER CONTROLS
+			//-----------------------------------------
+			//	Controls inside the webpage can emit async events to the server
+			//	In this example I have a push button and I catch keyboard strokes
+
+			//Handler for a pushbutton
+			function socket_button_handler()
+			{
+				mysocket.emit("myclick", { payload: "button was clicked" });
+				console.log("Button was clicked...");
+			}
+
+			//Listen for keystrokes
+			window.document.addEventListener
+			(
+				"keydown",
+				function onEvent(event)
+				{
+					//Inform the server that a key has been pressed
+					mysocket.emit("key_down", { payload: event.key });
+					console.log("Key press: " +event.key);
+				}
+			);
+
+			//Listen for keystrokes releases
+			window.document.addEventListener
+			(
+				"keyup",
+				function onEvent(event)
+				{
+					//Inform the server that a key has been pressed
+					mysocket.emit("key_up", { payload: event.key });
+					console.log("Key release" +event.key);
+				}
+			);
+
+			//-----------------------------------------
+			//	PING-PONG
+			//-----------------------------------------
+			//	Server sends ping messages with a timestamp
+			//	Client answers with pongs to allow server to profile latency of the channel
+
+			//profile messages means the server wants to compute roundway trip
+			mysocket.on
+			(
+				"profile_ping",
+				(message) =>
+				{
+					//Answer back with the received timestamp so that server can compute roundway trip
+					mysocket.emit("profile_pong", { timestamp: message.timestamp });
+					console.log( "server wants a pong. server absolute timestamp[ms]: " +message.timestamp );
+				}
+			);
+
+		</script>
+	</head>
+	<body>
+		<h1>Html+Css Server +low latency Websocket server</h1>
+		<p> This button will emit a websocket event. The server will be informed in real time of the event. </p>
+		<button id="my_button" type="button" onclick="socket_button_handler()">Websocket Button!</button>
+
+		<p> This input can be filled through websockets directly by the server in real time </p>
+		<input id="my_text_box" type="text" value="" size="40">
+
+		<p> This canvas is painted by the javascript player and shows the live stream.'</p>
+		<canvas id="video-canvas" width=640 height=480></canvas>
+
+		<script type="text/javascript" src="jsmpeg.min.js"></script>
+		<script type="text/javascript">
+		//var host_ip = document.location.hostname;
+		var mycanvas = document.getElementById("video-canvas");
+		var url = "ws://" + host_ip +":8082/";
+		var player = new JSMpeg.Player(url, {canvas: mycanvas});
+		</script>
+	</body>
+</html>
