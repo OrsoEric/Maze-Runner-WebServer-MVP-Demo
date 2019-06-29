@@ -1,6 +1,9 @@
 # Maze-Runner-WebServer-MVP-Demo
 NODE.JS webserver hosted inside Maze Runner. It provides a webpage that allows remote control of Maze Runner through a browser<br>
 
+# Step-By-Step configuration guide
+![Maze Runner MVP Demo](https://fatherofmachines.blogspot.com/p/blog-page_29.html)
+
 # Dependencies
 HW: Raspberry Pi 3B+<br>
 OS: Raspbian Stretch<br>
